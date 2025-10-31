@@ -17,8 +17,10 @@ interface PaymentUpdatePayload {
 
 @WebSocketGateway({
   cors: {
-    //TODO: ajustar en producción
-    origin: "*", // Configurar según tus necesidades de seguridad
+    origin: process.env.ALLOWED_ORIGINS?.split(",") || [
+      "http://localhost:3000",
+      "http://localhost:4200",
+    ],
     credentials: true,
   },
   namespace: "/payments",
@@ -30,30 +32,48 @@ export class PaymentWebsocketGateway
   server: Server;
 
   private readonly logger = new Logger(PaymentWebsocketGateway.name);
-  private clients: Map<string, Socket> = new Map();
+  private readonly clients: Map<string, Socket> = new Map();
 
   afterInit(server: Server) {
     this.logger.log("WebSocket Gateway initialized");
   }
 
   handleConnection(client: Socket) {
+    // Validar API key en handshake
+    const apiKey = client.handshake.headers["x-api-key"] as string;
+    const validApiKey = process.env.API_KEY;
+
+    if (!apiKey || apiKey !== validApiKey) {
+      this.logger.warn(
+        `Unauthorized WebSocket connection attempt: ${client.id}`,
+      );
+      client.disconnect();
+      return;
+    }
+
     this.logger.log(`Client connected: ${client.id}`);
     this.clients.set(client.id, client);
 
     // El cliente puede enviar su referencia de pago para suscribirse
-    client.on("subscribe", (data: { reference: string }) => {
+    client.on("subscribe", async (data: { reference: string }) => {
+      // Validar formato de referencia
+      if (!data.reference || typeof data.reference !== "string") {
+        this.logger.warn(`Invalid reference format from ${client.id}`);
+        return;
+      }
+
       this.logger.log(
         `Client ${client.id} subscribed to reference: ${data.reference}`,
       );
-      client.join(`payment:${data.reference}`);
+      await client.join(`payment:${data.reference}`);
     });
 
     // El cliente puede desuscribirse de una referencia
-    client.on("unsubscribe", (data: { reference: string }) => {
+    client.on("unsubscribe", async (data: { reference: string }) => {
       this.logger.log(
         `Client ${client.id} unsubscribed from reference: ${data.reference}`,
       );
-      client.leave(`payment:${data.reference}`);
+      await client.leave(`payment:${data.reference}`);
     });
   }
 

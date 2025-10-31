@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 import {
   Controller,
   Post,
@@ -8,11 +6,13 @@ import {
   HttpCode,
   HttpStatus,
 } from "@nestjs/common";
+import { SkipThrottle } from "@nestjs/throttler";
 import { WebhookService } from "./webhook.service";
 import { WompiWebhookDto } from "./dto/wompi-webhook.dto";
 import { PaymentWebsocketGateway } from "../websocket/payment-websocket.gateway";
 
 @Controller("payments")
+@SkipThrottle() // Wompi necesita enviar múltiples webhooks sin limitación
 export class WebhookController {
   private readonly logger = new Logger(WebhookController.name);
 

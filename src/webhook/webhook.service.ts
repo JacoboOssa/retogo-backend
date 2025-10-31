@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Injectable, Logger, BadRequestException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { createHash } from "node:crypto";
@@ -25,6 +24,18 @@ export class WebhookService {
       );
       const { transaction } = webhookData.data;
       const { timestamp, signature } = webhookData;
+
+      // Validar que el timestamp no sea muy antiguo (máximo 5 minutos)
+      const currentTimestamp = Math.floor(Date.now() / 1000);
+      const webhookTimestamp = Math.floor(timestamp / 1000);
+      const timeDifference = currentTimestamp - webhookTimestamp;
+
+      if (timeDifference > 300 || timeDifference < -300) {
+        this.logger.warn(
+          `Webhook timestamp too old or in future: ${timeDifference}s`,
+        );
+        return false;
+      }
 
       const data = `${transaction.id}${transaction.status}${transaction.amount_in_cents}${timestamp}${eventsSecret}`;
       const calculatedChecksum = createHash("sha256")
