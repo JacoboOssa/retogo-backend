@@ -41,8 +41,8 @@ export class PaymentWebsocketGateway
   }
 
   handleConnection(client: Socket) {
-    // Validar API key en handshake
-    const apiKey = client.handshake.headers["x-api-key"] as string;
+    // Validar API key desde auth
+    const apiKey = client.handshake.auth.token as string;
     const validApiKey = process.env.API_KEY;
 
     if (!apiKey || apiKey !== validApiKey) {
