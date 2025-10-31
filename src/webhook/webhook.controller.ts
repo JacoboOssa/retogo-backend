@@ -7,12 +7,12 @@ import {
   Logger,
   HttpCode,
   HttpStatus,
-} from '@nestjs/common';
-import { WebhookService } from './webhook.service';
-import { WompiWebhookDto } from './dto/wompi-webhook.dto';
-import { PaymentWebsocketGateway } from '../websocket/payment-websocket.gateway';
+} from "@nestjs/common";
+import { WebhookService } from "./webhook.service";
+import { WompiWebhookDto } from "./dto/wompi-webhook.dto";
+import { PaymentWebsocketGateway } from "../websocket/payment-websocket.gateway";
 
-@Controller('payments')
+@Controller("payments")
 export class WebhookController {
   private readonly logger = new Logger(WebhookController.name);
 
@@ -21,7 +21,7 @@ export class WebhookController {
     private readonly websocketGateway: PaymentWebsocketGateway,
   ) {}
 
-  @Post('webhook')
+  @Post("webhook")
   @HttpCode(HttpStatus.OK)
   async handleWebhook(@Body() webhookData: WompiWebhookDto) {
     this.logger.log(`Received webhook event: ${webhookData.event}`);
@@ -29,7 +29,7 @@ export class WebhookController {
     const result = await this.webhookService.processWebhook(webhookData);
 
     // Si el estado es APPROVED o DECLINED, enviar notificación por WebSocket
-    if (result.status && ['APPROVED', 'DECLINED'].includes(result.status)) {
+    if (result.status && ["APPROVED", "DECLINED"].includes(result.status)) {
       const { reference, status } = webhookData.data.transaction;
 
       this.logger.log(

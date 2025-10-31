@@ -3,8 +3,8 @@ import {
   OnModuleInit,
   OnModuleDestroy,
   Logger,
-} from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
+} from "@nestjs/common";
+import { PrismaClient } from "@prisma/client";
 
 @Injectable()
 export class PrismaService
@@ -17,10 +17,10 @@ export class PrismaService
     try {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-call
       await this.$connect();
-      this.logger.log('✅ Connected to database successfully');
+      this.logger.log("✅ Connected to database successfully");
     } catch (error) {
-      this.logger.error('❌ Failed to connect to database:', error);
-      this.logger.warn('⚠️ Database connection will be retried on first query');
+      this.logger.error("❌ Failed to connect to database:", error);
+      this.logger.warn("⚠️ Database connection will be retried on first query");
       // No lanzamos el error para permitir que la aplicación inicie
       // La conexión se intentará en la primera query
     }

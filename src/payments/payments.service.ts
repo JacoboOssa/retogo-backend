@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
-import { Injectable, Logger, BadRequestException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { PrismaService } from '../prisma/prisma.service';
-import { createHash } from 'node:crypto';
-import { CreatePaymentDto } from './dto/create-payment.dto';
-import { PaymentResponseDto } from './dto/payment-response.dto';
+import { Injectable, Logger, BadRequestException } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { PrismaService } from "../prisma/prisma.service";
+import { createHash } from "node:crypto";
+import { CreatePaymentDto } from "./dto/create-payment.dto";
+import { PaymentResponseDto } from "./dto/payment-response.dto";
 
 @Injectable()
 export class PaymentsService {
@@ -37,10 +37,10 @@ export class PaymentsService {
     currency: string,
   ): string {
     const integritySecret = this.configService.get<string>(
-      'WOMPI_INTEGRITY_SECRET',
+      "WOMPI_INTEGRITY_SECRET",
     );
     const concatenated = `${reference}${amount}${currency}${integritySecret}`;
-    return createHash('sha256').update(concatenated).digest('hex');
+    return createHash("sha256").update(concatenated).digest("hex");
   }
 
   /**
@@ -54,12 +54,12 @@ export class PaymentsService {
 
       // Validate deviceId
       if (!deviceId) {
-        throw new BadRequestException('deviceId is required');
+        throw new BadRequestException("deviceId is required");
       }
 
       // Payment details (fixed amount)
       const AMOUNT_IN_CENTS = 1500000; // $15,000 COP
-      const CURRENCY = 'COP';
+      const CURRENCY = "COP";
 
       // Generate unique reference
       const reference = this.generateReference();
@@ -75,7 +75,7 @@ export class PaymentsService {
       await this.prisma.payment.create({
         data: {
           reference,
-          status: 'PENDING',
+          status: "PENDING",
           amount: AMOUNT_IN_CENTS,
           deviceId,
           createdAt: new Date().toISOString(),
@@ -91,10 +91,10 @@ export class PaymentsService {
         signature,
         amount: AMOUNT_IN_CENTS,
         currency: CURRENCY,
-        publicKey: this.configService.get<string>('WOMPI_PUBLIC_KEY') || '',
+        publicKey: this.configService.get<string>("WOMPI_PUBLIC_KEY") || "",
       };
     } catch (error) {
-      this.logger.error('Error in create-wompi-payment:', error);
+      this.logger.error("Error in create-wompi-payment:", error);
       throw error;
     }
   }

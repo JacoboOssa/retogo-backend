@@ -5,9 +5,9 @@ import {
   OnGatewayConnection,
   OnGatewayDisconnect,
   OnGatewayInit,
-} from '@nestjs/websockets';
-import { Logger } from '@nestjs/common';
-import { Server, Socket } from 'socket.io';
+} from "@nestjs/websockets";
+import { Logger } from "@nestjs/common";
+import { Server, Socket } from "socket.io";
 
 interface PaymentUpdatePayload {
   reference: string;
@@ -18,10 +18,10 @@ interface PaymentUpdatePayload {
 @WebSocketGateway({
   cors: {
     //TODO: ajustar en producción
-    origin: '*', // Configurar según tus necesidades de seguridad
+    origin: "*", // Configurar según tus necesidades de seguridad
     credentials: true,
   },
-  namespace: '/payments',
+  namespace: "/payments",
 })
 export class PaymentWebsocketGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
@@ -33,7 +33,7 @@ export class PaymentWebsocketGateway
   private clients: Map<string, Socket> = new Map();
 
   afterInit(server: Server) {
-    this.logger.log('WebSocket Gateway initialized');
+    this.logger.log("WebSocket Gateway initialized");
   }
 
   handleConnection(client: Socket) {
@@ -41,7 +41,7 @@ export class PaymentWebsocketGateway
     this.clients.set(client.id, client);
 
     // El cliente puede enviar su referencia de pago para suscribirse
-    client.on('subscribe', (data: { reference: string }) => {
+    client.on("subscribe", (data: { reference: string }) => {
       this.logger.log(
         `Client ${client.id} subscribed to reference: ${data.reference}`,
       );
@@ -49,7 +49,7 @@ export class PaymentWebsocketGateway
     });
 
     // El cliente puede desuscribirse de una referencia
-    client.on('unsubscribe', (data: { reference: string }) => {
+    client.on("unsubscribe", (data: { reference: string }) => {
       this.logger.log(
         `Client ${client.id} unsubscribed from reference: ${data.reference}`,
       );
@@ -71,14 +71,14 @@ export class PaymentWebsocketGateway
     this.logger.log(`Broadcasting payment update: ${reference} -> ${status}`);
 
     // Emitir a todos los clientes suscritos a esta referencia
-    this.server.to(`payment:${reference}`).emit('payment_update', {
+    this.server.to(`payment:${reference}`).emit("payment_update", {
       reference,
       status,
       timestamp,
     });
 
     // También emitir a todos los clientes conectados (broadcast general)
-    this.server.emit('payment_status_changed', {
+    this.server.emit("payment_status_changed", {
       reference,
       status,
       timestamp,

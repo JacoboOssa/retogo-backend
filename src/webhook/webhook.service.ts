@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { Injectable, Logger, BadRequestException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { createHash } from 'node:crypto';
-import { PaymentsService } from '../payments/payments.service';
-import { WompiWebhookDto } from './dto/wompi-webhook.dto';
+import { Injectable, Logger, BadRequestException } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { createHash } from "node:crypto";
+import { PaymentsService } from "../payments/payments.service";
+import { WompiWebhookDto } from "./dto/wompi-webhook.dto";
 
 @Injectable()
 export class WebhookService {
@@ -21,25 +21,25 @@ export class WebhookService {
   private validateSignature(webhookData: WompiWebhookDto): boolean {
     try {
       const eventsSecret = this.configService.get<string>(
-        'WOMPI_EVENTS_SECRET',
+        "WOMPI_EVENTS_SECRET",
       );
       const { transaction } = webhookData.data;
       const { timestamp, signature } = webhookData;
 
       const data = `${transaction.id}${transaction.status}${transaction.amount_in_cents}${timestamp}${eventsSecret}`;
-      const calculatedChecksum = createHash('sha256')
+      const calculatedChecksum = createHash("sha256")
         .update(data)
-        .digest('hex');
+        .digest("hex");
 
       const isValid = calculatedChecksum === signature.checksum;
 
       if (!isValid) {
-        this.logger.warn('Invalid webhook signature');
+        this.logger.warn("Invalid webhook signature");
       }
 
       return isValid;
     } catch (error) {
-      this.logger.error('Error validating webhook signature', error);
+      this.logger.error("Error validating webhook signature", error);
       return false;
     }
   }
@@ -53,14 +53,14 @@ export class WebhookService {
     try {
       // Validar la firma
       if (!this.validateSignature(webhookData)) {
-        throw new BadRequestException('Invalid webhook signature');
+        throw new BadRequestException("Invalid webhook signature");
       }
 
       // Solo procesar eventos de actualización soportados
       const supportedEvents = [
-        'transaction.updated',
-        'nequi_token.updated',
-        'bancolombia_transfer_token.updated',
+        "transaction.updated",
+        "nequi_token.updated",
+        "bancolombia_transfer_token.updated",
       ];
 
       if (!supportedEvents.includes(webhookData.event)) {
@@ -82,7 +82,7 @@ export class WebhookService {
         await this.paymentsService.getPaymentByReference(reference);
       if (!payment) {
         this.logger.warn(`Payment not found for reference: ${reference}`);
-        throw new BadRequestException('Payment not found');
+        throw new BadRequestException("Payment not found");
       }
 
       // Actualizar el estado del pago
@@ -103,7 +103,7 @@ export class WebhookService {
         status,
       };
     } catch (error) {
-      this.logger.error('Error processing webhook', error);
+      this.logger.error("Error processing webhook", error);
       throw error;
     }
   }
