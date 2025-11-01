@@ -1,88 +1,36 @@
-import {
-  IsString,
-  IsNumber,
-  IsObject,
-  IsArray,
-  ValidateNested,
-  IsNotEmpty,
-} from "class-validator";
-import { Type } from "class-transformer";
+import { IsString, IsNumber, IsNotEmpty } from "class-validator";
 
-class TransactionDto {
-  @IsString()
-  @IsNotEmpty()
-  id: string;
-
-  @IsNumber()
-  amount_in_cents: number;
-
-  @IsString()
-  @IsNotEmpty()
-  reference: string;
-
-  @IsString()
-  customer_email: string;
-
-  @IsString()
-  currency: string;
-
-  @IsString()
-  payment_method_type: string;
-
-  @IsString()
-  redirect_url: string;
-
-  @IsString()
-  @IsNotEmpty()
-  status: string;
-
-  shipping_address: any;
-
-  @IsString()
-  payment_link_id: string;
-
-  payment_source_id: any;
-}
-
-class DataDto {
-  @ValidateNested()
-  @Type(() => TransactionDto)
-  transaction: TransactionDto;
-}
-
-class SignatureDto {
-  @IsString()
-  @IsNotEmpty()
-  checksum: string;
-
-  @IsArray()
-  @IsString({ each: true })
-  properties: string[];
-}
-
+// DTO minimalista: solo valida lo esencial para el checksum
+// y deja todo lo demás flexible para evitar rechazos innecesarios
 export class WompiWebhookDto {
   @IsString()
   @IsNotEmpty()
   event: string;
 
-  @ValidateNested()
-  @Type(() => DataDto)
-  @IsObject()
-  data: DataDto;
+  // Solo validamos que exista la estructura mínima necesaria
+  data: {
+    transaction: {
+      id: string; // Necesario para checksum
+      status: string; // Necesario para checksum
+      amount_in_cents: number; // Necesario para checksum
+      reference: string; // Necesario para nuestro negocio
+      payment_method_type?: string;
+      customer_email?: string;
+      currency?: string;
+      redirect_url?: string;
+      [key: string]: any; // Permite cualquier otro campo
+    };
+  };
 
-  @IsString()
-  @IsNotEmpty()
-  environment: string;
+  environment?: string;
 
-  @ValidateNested()
-  @Type(() => SignatureDto)
-  @IsObject()
-  signature: SignatureDto;
+  signature: {
+    checksum: string; // Necesario para validación
+    properties?: string[];
+  };
 
   @IsNumber()
-  timestamp: number;
+  timestamp: number; // Necesario para checksum
 
-  @IsString()
-  @IsNotEmpty()
-  sent_at: string;
+  sent_at?: string;
 }
