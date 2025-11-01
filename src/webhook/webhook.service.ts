@@ -2,7 +2,6 @@ import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { createHash } from "node:crypto";
 import { PaymentsService } from "../payments/payments.service";
-import { WompiWebhookDto } from "./dto/wompi-webhook.dto";
 
 @Injectable()
 export class WebhookService {
@@ -17,7 +16,8 @@ export class WebhookService {
    * Valida la firma del webhook de Wompi
    * Concatena: transaction.id + transaction.status + transaction.amount_in_cents + timestamp + WOMPI_EVENTS_SECRET
    */
-  private validateSignature(webhookData: WompiWebhookDto): boolean {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private validateSignature(webhookData: any): boolean {
     try {
       const eventsSecret = this.configService.get<string>(
         "WOMPI_EVENTS_SECRET",
@@ -58,8 +58,9 @@ export class WebhookService {
   /**
    * Procesa el webhook de Wompi
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async processWebhook(
-    webhookData: WompiWebhookDto,
+    webhookData: any,
   ): Promise<{ success: boolean; status?: string }> {
     try {
       // Validar la firma
@@ -67,7 +68,6 @@ export class WebhookService {
       if (!isValidSignature) {
         this.logger.error("❌ Invalid webhook signature - continuing anyway");
         // NO lanzamos excepción, solo registramos el error
-        // En producción podrías querer rechazar esto, pero para debugging es útil procesarlo
       }
 
       // Solo procesar eventos de actualización soportados
@@ -119,7 +119,7 @@ export class WebhookService {
       };
     } catch (error) {
       this.logger.error("❌ Error processing webhook", error);
-      // NO relanzamos el error - dejamos que el controller maneje la respuesta
+      // Relanzamos el error para que el controller lo maneje
       throw error;
     }
   }

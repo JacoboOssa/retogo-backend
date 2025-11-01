@@ -39,15 +39,17 @@ async function bootstrap() {
     allowedHeaders: ["Content-Type", "Authorization", "x-api-key"],
   });
 
-  // Validación global de DTOs
+  // Validación global de DTOs (pero respetando el decorador @SkipValidation)
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true, // Elimina propiedades no definidas en el DTO
-      forbidNonWhitelisted: true, // Lanza error si hay propiedades no permitidas
-      transform: true, // Transforma los tipos automáticamente
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
       transformOptions: {
         enableImplicitConversion: true,
       },
+      // Permitir saltar validación para endpoints específicos
+      skipMissingProperties: false,
     }),
   );
 

@@ -1,36 +1,32 @@
-import { IsString, IsNumber, IsNotEmpty } from "class-validator";
-
-// DTO minimalista: solo valida lo esencial para el checksum
-// y deja todo lo demás flexible para evitar rechazos innecesarios
+// DTO flexible para webhooks de Wompi
+// No valida campos estrictos, solo define la estructura esperada
 export class WompiWebhookDto {
-  @IsString()
-  @IsNotEmpty()
   event: string;
 
-  // Solo validamos que exista la estructura mínima necesaria
   data: {
     transaction: {
-      id: string; // Necesario para checksum
-      status: string; // Necesario para checksum
-      amount_in_cents: number; // Necesario para checksum
-      reference: string; // Necesario para nuestro negocio
+      id: string;
+      status: string;
+      amount_in_cents: number;
+      reference: string;
       payment_method_type?: string;
       customer_email?: string;
       currency?: string;
       redirect_url?: string;
-      [key: string]: any; // Permite cualquier otro campo
+      shipping_address?: any;
+      payment_link_id?: any;
+      payment_source_id?: any;
+      [key: string]: any; // Permite cualquier campo adicional
     };
   };
 
   environment?: string;
 
   signature: {
-    checksum: string; // Necesario para validación
+    checksum: string;
     properties?: string[];
   };
 
-  @IsNumber()
-  timestamp: number; // Necesario para checksum
-
+  timestamp: number;
   sent_at?: string;
 }

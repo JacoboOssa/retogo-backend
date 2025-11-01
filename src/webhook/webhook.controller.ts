@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {
   Controller,
   Post,
@@ -5,10 +7,10 @@ import {
   Logger,
   HttpCode,
   HttpStatus,
+  Req,
 } from "@nestjs/common";
 import { SkipThrottle } from "@nestjs/throttler";
 import { WebhookService } from "./webhook.service";
-import { WompiWebhookDto } from "./dto/wompi-webhook.dto";
 import { PaymentWebsocketGateway } from "../websocket/payment-websocket.gateway";
 
 @Controller("payments")
@@ -23,8 +25,7 @@ export class WebhookController {
 
   @Post("webhook")
   @HttpCode(HttpStatus.OK)
-  async handleWebhook(@Body() webhookData: WompiWebhookDto) {
-    // IMPORTANTE: Siempre logueamos la recepción del webhook
+  async handleWebhook(@Req() req: any, @Body() webhookData: any) {
     this.logger.log("=================================================");
     this.logger.log("🔔 WEBHOOK RECEIVED FROM WOMPI");
     this.logger.log(`Event: ${webhookData?.event || "UNKNOWN"}`);
@@ -53,11 +54,9 @@ export class WebhookController {
       return result;
     } catch (error) {
       // CRÍTICO: Aunque falle el procesamiento, SIEMPRE devolvemos 200
-      // para que Wompi no reintente. Registramos el error internamente.
       this.logger.error("❌ Error processing webhook (returning 200 anyway):");
       this.logger.error(error);
 
-      // Wompi recibe 200 OK pero sabemos que hubo un error
       return {
         success: false,
         error: error instanceof Error ? error.message : "Unknown error",
