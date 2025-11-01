@@ -26,12 +26,12 @@ export class WebhookController {
   @Post("webhook")
   @HttpCode(HttpStatus.OK)
   async handleWebhook(@Req() req: any, @Body() webhookData: any) {
-    this.logger.log("=================================================");
-    this.logger.log("🔔 WEBHOOK RECEIVED FROM WOMPI");
-    this.logger.log(`Event: ${webhookData?.event || "UNKNOWN"}`);
-    this.logger.log(`Timestamp: ${new Date().toISOString()}`);
-    this.logger.log(`Data: ${JSON.stringify(webhookData)}`);
-    this.logger.log("=================================================");
+    const reference = webhookData?.data?.transaction?.reference || "UNKNOWN";
+    const event = webhookData?.event || "UNKNOWN";
+
+    this.logger.log(
+      `Webhook received - Event: ${event}, Reference: ${reference}`,
+    );
 
     try {
       const result = await this.webhookService.processWebhook(webhookData);
@@ -40,9 +40,6 @@ export class WebhookController {
       if (result.status && ["APPROVED", "DECLINED"].includes(result.status)) {
         const { reference, status } = webhookData.data.transaction;
 
-        this.logger.log(
-          `✅ Emitting payment update via WebSocket: ${reference} -> ${status}`,
-        );
         this.websocketGateway.notifyPaymentUpdate({
           reference,
           status,
@@ -50,12 +47,12 @@ export class WebhookController {
         });
       }
 
-      this.logger.log(`✅ Webhook processed successfully`);
       return result;
     } catch (error) {
       // CRÍTICO: Aunque falle el procesamiento, SIEMPRE devolvemos 200
-      this.logger.error("❌ Error processing webhook (returning 200 anyway):");
-      this.logger.error(error);
+      this.logger.error(
+        `Webhook processing error: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
 
       return {
         success: false,
