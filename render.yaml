@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: retogo-backend
+    env: node
+    region: oregon
+    plan: free
+    buildCommand: npm install && npx prisma generate && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_KEY
+        sync: false
+      - key: WOMPI_PUBLIC_KEY
+        sync: false
+      - key: WOMPI_PRIVATE_KEY
+        sync: false
+      - key: WOMPI_EVENT_SECRET
+        sync: false
+      - key: API_KEY
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
+      - key: NODE_OPTIONS
+        value: --max-old-space-size=512
