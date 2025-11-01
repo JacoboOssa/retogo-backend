@@ -12,25 +12,29 @@ async function bootstrap() {
 
   // Configurar CORS
   const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",") || [
+    "https://night-dare-go-five.vercel.app",
     "http://localhost:3000",
     "http://localhost:4200",
     "http://localhost:8080",
-    "*",
   ];
+
+  logger.log(`🔒 CORS enabled for origins: ${allowedOrigins.join(", ")}`);
 
   app.enableCors({
     origin: (
       origin: string | undefined,
       callback: (err: Error | null, allow?: boolean) => void,
     ) => {
-      // Permitir requests sin origin (como Postman) solo en desarrollo
-      if (!origin && process.env.NODE_ENV === "development") {
+      // Permitir requests sin origin (como webhooks de Wompi, Postman, etc.)
+      if (!origin) {
         callback(null, true);
         return;
       }
-      if (!origin || allowedOrigins.includes(origin)) {
+      
+      if (allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
+        logger.warn(`🚫 CORS blocked origin: ${origin}`);
         callback(new Error("Not allowed by CORS"));
       }
     },
